@@ -1,17 +1,17 @@
-name: Build Android APK
+name: Build Android APK and Release
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build APK
+    name: Build APK and Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repository
@@ -37,11 +37,12 @@ jobs:
       - name: Build Android APK
         run: flutter build apk --release
 
-      - name: Verify APK was generated
-        run: ls -lh build/app/outputs/flutter-apk/app-release.apk
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          files: build/app/outputs/flutter-apk/app-release.apk
+          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
